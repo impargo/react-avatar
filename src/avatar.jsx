@@ -11,6 +11,7 @@ class Avatar extends React.Component {
 
   static defaultProps = {
     shadingColor: 'grey',
+    round: true,
     shadingOpacity: 0.6,
     cropColor: 'white',
     closeIconColor: 'white',
@@ -61,6 +62,10 @@ class Avatar extends React.Component {
       lastMouseY: 0,
       showLoader: !(this.props.src || this.props.img)
     }
+  }
+  
+  get round() {
+    return this.props.round
   }
 
   get lineWidth() {
@@ -385,6 +390,7 @@ class Avatar extends React.Component {
       height: this.cropRadius * 2,
       width: this.cropRadius * 2,
       fillPatternImage: this.image,
+      cornerRadius: this.round ? this.halfWidth : 0,
       fillPatternOffset: {
         x: this.halfWidth / this.scale,
         y: this.halfHeight / this.scale
@@ -406,6 +412,7 @@ class Avatar extends React.Component {
       y: this.halfHeight,
       height: this.cropRadius * 2,
       width: this.cropRadius * 2,
+      cornerRadius: this.round ? this.halfWidth : 0,
       stroke: this.cropColor,
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
@@ -416,8 +423,8 @@ class Avatar extends React.Component {
 
   initResize() {
     return new Konva.Rect({
-      x: this.halfWidth + this.cropRadius * 0.86 - 8,
-      y: this.halfHeight + this.cropRadius * -0.5 - 8,
+      x: this.halfWidth + this.cropRadius,
+      y: this.halfHeight + this.cropRadius,
       width: 16,
       height: 16,
       draggable: true,
