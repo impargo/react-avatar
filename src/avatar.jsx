@@ -258,37 +258,39 @@ class Avatar extends React.Component {
 
     stage.add(layer);
 
-    const scaledRadius = (scale = 0) => crop.radius() - scale;
-    const isLeftCorner = scale => crop.x() - scaledRadius(scale) < 0;
-    const calcLeft = () => crop.radius() + 1;
-    const isTopCorner = scale => crop.y() - scaledRadius(scale) < 0;
-    const calcTop = () => crop.radius() + 1;
+    const scaledRadius = (scale = 0) => crop.width() - scale;
+    const isLeftCorner = () => crop.x() < 1;
+    const calcLeft = () => 0;
+    const isTopCorner = () => crop.y() < 1;
+    const calcTop = () => 0;
     const isRightCorner = scale => crop.x() + scaledRadius(scale) > stage.width();
-    const calcRight = () => stage.width() - crop.radius() - 1;
+    const calcRight = () => stage.width() - crop.width() - 1;
     const isBottomCorner = scale => crop.y() + scaledRadius(scale) > stage.height();
-    const calcBottom = () => stage.height() - crop.radius() - 1;
+    const calcBottom = () => stage.height() - crop.height() - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
-    const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.radius() - this.minCropRadius;
-    const calcResizerX = x => x + (crop.radius() * 0.86);
-    const calcResizerY = y => y - (crop.radius() * 0.5);
+    const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
+    const calcResizerX = x => x + (crop.width());
+    const calcResizerY = y => y;
     const moveResizer = (x, y) => {
-      resize.x(calcResizerX(x) - 8);
-      resize.y(calcResizerY(y) - 8);
-      resizeIcon.x(calcResizerX(x) - 8);
-      resizeIcon.y(calcResizerY(y) - 10)
+      resize.x(calcResizerX(x));
+      resize.y(calcResizerY(y));
+      resizeIcon.x(calcResizerX(x));
+      resizeIcon.y(calcResizerY(y))
     };
 
     const getPreview = () => crop.toDataURL({
-      x: crop.x() - crop.radius(),
-      y: crop.y() - crop.radius(),
-      width: crop.radius() * 2,
-      height: crop.radius() * 2
+      x: crop.x() - crop.width(),
+      y: crop.y() - crop.width(),
+      width: crop.width() * 2,
+      height: crop.height() * 2
     });
 
     const onScaleCallback = (scaleY) => {
       const scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
-      cropStroke.radius(cropStroke.radius() - calcScaleRadius(scale));
-      crop.radius(crop.radius() - calcScaleRadius(scale));
+      cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
+      cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
+      crop.width(crop.width() - calcScaleRadius(scale));
+      crop.height(crop.height() - calcScaleRadius(scale));
       resize.fire('resize')
     };
 
@@ -377,10 +379,11 @@ class Avatar extends React.Component {
   }
 
   initCrop() {
-    return new Konva.Circle({
+    return new Konva.Rect({
       x: this.halfWidth,
       y: this.halfHeight,
-      radius: this.cropRadius,
+      height: this.cropRadius * 2,
+      width: this.cropRadius * 2,
       fillPatternImage: this.image,
       fillPatternOffset: {
         x: this.halfWidth / this.scale,
@@ -398,10 +401,11 @@ class Avatar extends React.Component {
   }
 
   initCropStroke() {
-    return new Konva.Circle({
+    return new Konva.Rect({
       x: this.halfWidth,
       y: this.halfHeight,
-      radius: this.cropRadius,
+      height: this.cropRadius * 2,
+      width: this.cropRadius * 2,
       stroke: this.cropColor,
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
@@ -428,8 +432,8 @@ class Avatar extends React.Component {
 
   initResizeIcon() {
     return new Konva.Path({
-      x: this.halfWidth + this.cropRadius * 0.86 - 8,
-      y: this.halfHeight + this.cropRadius * -0.5 - 10,
+      x: this.halfWidth + this.cropRadius * 2,
+      y: this.halfHeight,
       data: 'M47.624,0.124l12.021,9.73L44.5,24.5l10,10l14.661-15.161l9.963,12.285v-31.5H47.624z M24.5,44.5   L9.847,59.653L0,47.5V79h31.5l-12.153-9.847L34.5,54.5L24.5,44.5z',
       fill: this.cropColor,
       scale: {
