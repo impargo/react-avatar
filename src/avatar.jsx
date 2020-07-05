@@ -264,18 +264,18 @@ class Avatar extends React.Component {
     stage.add(layer);
 
     const scaledRadius = (scale = 0) => crop.width() - scale;
-    const isLeftCorner = () => crop.x() < 1;
-    const calcLeft = () => 0;
-    const isTopCorner = () => crop.y() < 1;
-    const calcTop = () => 0;
-    const isRightCorner = scale => crop.x() + scaledRadius(scale) > stage.width();
-    const calcRight = () => stage.width() - crop.width() - 1;
-    const isBottomCorner = scale => crop.y() + scaledRadius(scale) > stage.height();
-    const calcBottom = () => stage.height() - crop.height() - 1;
+    const isLeftCorner = () => crop.x() - crop.width()/2 < 1;
+    const calcLeft = () => crop.width()/2;
+    const isTopCorner = () => crop.y() - crop.height()/2 < 1;
+    const calcTop = () => crop.height()/2;
+    const isRightCorner = scale => crop.x() + scaledRadius(scale)/2 > stage.width();
+    const calcRight = () => stage.width() - crop.width()/2 - 1;
+    const isBottomCorner = scale => crop.y() + scaledRadius(scale)/2 > stage.height();
+    const calcBottom = () => stage.height() - crop.height()/2 - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
     const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
-    const calcResizerX = x => x + (crop.width());
-    const calcResizerY = y => y;
+    const calcResizerX = x => this.round ? x + (crop.width()/2 * 0.86) : x + crop.width() / 2 - 8;
+    const calcResizerY = y => this.round ? y - (crop.height()/2 * 0.5) : y - crop.height() / 2 - 8;
     const moveResizer = (x, y) => {
       resize.x(calcResizerX(x));
       resize.y(calcResizerY(y));
@@ -296,6 +296,11 @@ class Avatar extends React.Component {
       cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
       crop.width(crop.width() - calcScaleRadius(scale));
       crop.height(crop.height() - calcScaleRadius(scale));
+      crop.offsetX(crop.width()/2)
+      crop.offsetY(crop.height()/2)
+      cropStroke.offsetX(cropStroke.width()/2)
+      cropStroke.offsetY(cropStroke.height()/2)
+      crop.setFillPatternOffset({ x: (crop.x() - crop.width()/2) / this.scale, y: (crop.y() - crop.height()/2) / this.scale });
       resize.fire('resize')
     };
 
@@ -308,7 +313,7 @@ class Avatar extends React.Component {
       const x = isLeftCorner() ? calcLeft() : (isRightCorner() ? calcRight() : crop.x());
       const y = isTopCorner() ? calcTop() : (isBottomCorner() ? calcBottom() : crop.y());
       moveResizer(x, y);
-      crop.setFillPatternOffset({ x: x / this.scale, y: y / this.scale });
+      crop.setFillPatternOffset({ x: (x - crop.width()/2) / this.scale, y: (y - crop.height()/2) / this.scale });
       crop.x(x);
       cropStroke.x(x);
       crop.y(y);
@@ -387,13 +392,15 @@ class Avatar extends React.Component {
     return new Konva.Rect({
       x: this.halfWidth,
       y: this.halfHeight,
+      offsetX: this.cropRadius,
+      offsetY: this.cropRadius,
       height: this.cropRadius * 2,
       width: this.cropRadius * 2,
       fillPatternImage: this.image,
       cornerRadius: this.round ? this.halfWidth : 0,
       fillPatternOffset: {
-        x: this.halfWidth / this.scale,
-        y: this.halfHeight / this.scale
+        x: (this.halfWidth - this.cropRadius) / this.scale,
+        y: (this.halfHeight - this.cropRadius) / this.scale
       },
       fillPatternScale: {
         x: this.scale,
@@ -412,6 +419,8 @@ class Avatar extends React.Component {
       y: this.halfHeight,
       height: this.cropRadius * 2,
       width: this.cropRadius * 2,
+      offsetX: this.cropRadius,
+      offsetY: this.cropRadius,
       cornerRadius: this.round ? this.halfWidth : 0,
       stroke: this.cropColor,
       strokeWidth: this.lineWidth,
@@ -423,8 +432,8 @@ class Avatar extends React.Component {
 
   initResize() {
     return new Konva.Rect({
-      x: this.halfWidth + this.cropRadius,
-      y: this.halfHeight + this.cropRadius,
+      x: this.round ? this.halfWidth + (this.cropRadius * 0.86) : this.halfWidth + this.cropRadius - 8,
+      y: this.round ? this.halfHeight - (this.cropRadius * 0.5) : this.halfHeight - this.cropRadius - 8,
       width: 16,
       height: 16,
       draggable: true,
@@ -439,8 +448,8 @@ class Avatar extends React.Component {
 
   initResizeIcon() {
     return new Konva.Path({
-      x: this.halfWidth + this.cropRadius * 2,
-      y: this.halfHeight,
+      x: this.round ? this.halfWidth + (this.cropRadius * 0.86) : this.halfWidth + this.cropRadius - 8,
+      y: this.round ? this.halfHeight - (this.cropRadius * 0.5) : this.halfHeight - this.cropRadius - 8,
       data: 'M47.624,0.124l12.021,9.73L44.5,24.5l10,10l14.661-15.161l9.963,12.285v-31.5H47.624z M24.5,44.5   L9.847,59.653L0,47.5V79h31.5l-12.153-9.847L34.5,54.5L24.5,44.5z',
       fill: this.cropColor,
       scale: {
