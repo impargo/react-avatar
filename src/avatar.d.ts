@@ -129,6 +129,11 @@ export interface Props {
    * Invoked when user clock on close editor button
    */
   onClose?: () => void;
+  
+  /**
+   * Shape of cropping area
+   */
+  round: boolean;
 }
 
 declare class Avatar extends React.Component<Props> {
