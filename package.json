@@ -1,6 +1,6 @@
 {
   "name": "@impargo/react-avatar-edit",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "ReactJS component to upload, crop, and preview avatars",
   "main": "lib/react-avatar.js",
   "types": "src/avatar.d.ts",
@@ -17,9 +17,6 @@
     "name": "Kirill Novikov",
     "email": "kirill3333@inbox.ru"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
-  }, 
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/impargo/react-avatar/issues"
