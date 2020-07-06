@@ -293,9 +293,9 @@ class Avatar extends React.Component {
     const onScaleCallback = (scaleY) => {
       const scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
       cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
-      cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
+      cropStroke.height(cropStroke.width());
       crop.width(crop.width() - calcScaleRadius(scale));
-      crop.height(crop.height() - calcScaleRadius(scale));
+      crop.height(crop.width());
       crop.offsetX(crop.width()/2)
       crop.offsetY(crop.height()/2)
       cropStroke.offsetX(cropStroke.width()/2)
