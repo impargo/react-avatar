@@ -20,6 +20,7 @@ class Avatar extends React.Component {
     minAspecRatio: 1/2,
     maxAspecRatio: 16/9,
     changeAspecRatio: false,
+    showResizeArrow: true,
     backgroundColor: 'grey',
     mimeTypes: 'image/jpeg,image/png',
     mobileScaleSpeed: 0.5, // experimental
@@ -265,8 +266,10 @@ class Avatar extends React.Component {
     layer.add(cropStroke);
     layer.add(crop);
 
-    layer.add(resize);
-    layer.add(resizeIcon);
+    if(this.props.showResizeArrow) {
+      layer.add(resize);
+      layer.add(resizeIcon);
+    }
 
     stage.add(layer);
 
