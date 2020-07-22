@@ -60,7 +60,7 @@ class App extends React.Component {
               height={295}
               onCrop={this.onCropDefault}
               onClose={this.onCloseDefault}
-              // src={this.state.src}
+              src={this.state.src}
             />
           </div>
           <div className="col-2">
