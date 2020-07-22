@@ -248,11 +248,7 @@ class Avatar extends React.Component {
     const shading = this.initShading();
     const crop = this.initCrop();
     const cropStroke = this.initCropStroke();
-    const resizeX = this.initResizeX();
-    const resizeY = this.initResizeY();
     const resize = this.initResize();
-    const resizeIconX = this.initResizeIconX();
-    const resizeIconY = this.initResizeIconY();
     const resizeIcon = this.initResizeIcon();
 
     const layer = new Konva.Layer();
@@ -261,12 +257,6 @@ class Avatar extends React.Component {
     layer.add(shading);
     layer.add(cropStroke);
     layer.add(crop);
-
-    layer.add(resizeX);
-    layer.add(resizeIconX);
-
-    layer.add(resizeY);
-    layer.add(resizeIconY);
 
     layer.add(resize);
     layer.add(resizeIcon);
@@ -291,14 +281,8 @@ class Avatar extends React.Component {
     const moveResizer = (x, y) => {
       resizeIcon.x(calcResizerXX(x));
       resizeIcon.y(calcResizerYY(y));
-      resizeX.x(calcResizerXX(x));
-      resizeX.y(calcResizerXY(y));
-      resizeIconX.x(calcResizerXX(x));
-      resizeIconX.y(calcResizerXY(y));
-      resizeY.x(calcResizerYX(x));
-      resizeY.y(calcResizerYY(y));
-      resizeIconY.x(calcResizerYX(x));
-      resizeIconY.y(calcResizerYY(y));
+      resize.x(calcResizerXX(x));
+      resize.y(calcResizerYY(y));
     };
 
     const getPreview = () => crop.toDataURL({
@@ -319,7 +303,7 @@ class Avatar extends React.Component {
       crop.offsetX(crop.width()/2)
       cropStroke.offsetX(cropStroke.width()/2)
       crop.setFillPatternOffset({ x: (crop.x() - crop.width()/2) / this.scale, y: (crop.y() - crop.height()/2) / this.scale });
-      resizeX.fire('resize')
+      cropStroke.fire('resize')
     };
 
     const onScaleCallbackY = (scaleY) => {
@@ -329,7 +313,7 @@ class Avatar extends React.Component {
       crop.offsetY(crop.height()/2)
       cropStroke.offsetY(cropStroke.height()/2)
       crop.setFillPatternOffset({ x: (crop.x() - crop.width()/2) / this.scale, y: (crop.y() - crop.height()/2) / this.scale });
-      resizeY.fire('resize')
+      cropStroke.fire('resize')
     };
 
 
@@ -355,73 +339,81 @@ class Avatar extends React.Component {
     crop.on('dragstart', () => stage.container().style.cursor = 'move');
     crop.on('dragend', () => stage.container().style.cursor = 'default');
 
-    resizeY.on("touchstart", (evt) => {
-      resizeY.on("dragmove", (dragEvt) => {
+    cropStroke.on("touchstart", (evt) => {
+      cropStroke.on("dragmove", (dragEvt) => {
         if (dragEvt.evt.type !== 'touchmove') return;
         const scaleY = (dragEvt.evt.changedTouches['0'].pageY - evt.evt.changedTouches['0'].pageY) || 0;
-        onScaleCallbackY(scaleY * this.mobileScaleSpeed)
+        onScaleCallback(scaleY * this.mobileScaleSpeed)
       })
     });
 
-    resizeY.on("dragmove", (evt) => {
+    cropStroke.on("dragmove", (evt) => {
       if (evt.evt.type === 'touchmove') return;
       const newMouseY = evt.evt.y;
-      const ieScaleFactor = newMouseY ? (newMouseY - this.state.lastMouseY) : undefined;
-      const scaleY = evt.evt.movementY || ieScaleFactor || 0;
+      const newMouseX = evt.evt.x;
+      const ieScaleFactorY = newMouseY ? (newMouseY - this.state.lastMouseY) : undefined;
+      const ieScaleFactorX = newMouseX ? (newMouseX - this.state.lastMouseX) : undefined;
+      const scaleY = evt.evt.movementY || ieScaleFactorY || 0;
+      const scaleX = evt.evt.movementX || ieScaleFactorX || 0;
+      const halfWidth = cropStroke.width()/2
+      const halfHeight = cropStroke.height()/2
+      const ex = evt.evt.layerX - cropStroke.x()
+      const ey = evt.evt.layerY - cropStroke.y()
+      const THRESHOLD = 3
+      const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
+      const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
+      const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
+      const Bside = -1 * ey > halfHeight - THRESHOLD && -1 * ey < halfHeight + THRESHOLD
       this.setState({
         lastMouseY: newMouseY,
-      });
-      onScaleCallbackY(scaleY)
-    });
-    resizeY.on("dragend", () => this.onCropCallback(getPreview()));
-
-    resizeY.on('resize', () => moveResizer(crop.x(), crop.y()));
-
-    resizeY.on("mouseenter", () => stage.container().style.cursor = 'nesw-resize');
-    resizeY.on("mouseleave", () => stage.container().style.cursor = 'default');
-    resizeY.on('dragstart', (evt) => {
-      this.setState({
-        lastMouseY: evt.evt.y,
-      });
-      stage.container().style.cursor = 'nesw-resize'
-    });
-    resizeY.on('dragend', () => stage.container().style.cursor = 'default')
-
-
-    // X-axis
-    resizeX.on("touchstart", (evt) => {
-      resizeX.on("dragmove", (dragEvt) => {
-        if (dragEvt.evt.type !== 'touchmove') return;
-        const scaleX = (dragEvt.evt.changedTouches['0'].pageX - evt.evt.changedTouches['0'].pageX) || 0;
-        onScaleCallbackX(scaleX * this.mobileScaleSpeed)
-      })
-    });
-
-    resizeX.on("dragmove", (evt) => {
-      if (evt.evt.type === 'touchmove') return;
-      const newMouseX = evt.evt.X;
-      const ieScaleFactor = newMouseX ? (newMouseX - this.state.lastMouseX) : undefined;
-      const scaleX = evt.evt.movementX || ieScaleFactor || 0;
-      this.setState({
         lastMouseX: newMouseX,
       });
-      onScaleCallbackX(-scaleX)
+      if(Lside) {
+        onScaleCallbackX(scaleX)
+      }
+      if(Rside) {
+        onScaleCallbackX(-scaleX)
+      }
+      if(Bside) {
+        onScaleCallbackY(-scaleY)
+      }
+      if(Tside) {
+        onScaleCallbackY(scaleY)
+      }
     });
-    resizeX.on("dragend", () => this.onCropCallback(getPreview()));
+    cropStroke.on("dragend", () => this.onCropCallback(getPreview()));
 
-    resizeX.on('resize', () => moveResizer(crop.x(), crop.y()));
+    cropStroke.on('resize', () => moveResizer(crop.x(), crop.y()));
 
-    resizeX.on("mouseenter", () => stage.container().style.cursor = 'nesw-resize');
-    resizeX.on("mouseleave", () => stage.container().style.cursor = 'default');
-    resizeX.on('dragstart', (evt) => {
+    cropStroke.on("mousemove", (evt) => {
+      const halfWidth = cropStroke.width()/2
+      const halfHeight = cropStroke.height()/2
+      const ex = evt.evt.layerX - cropStroke.x()
+      const ey = evt.evt.layerY - cropStroke.y()
+      const THRESHOLD = 3
+      const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
+      const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
+      const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
+      const Bside = -1 * ey > halfHeight - THRESHOLD && -1 * ey < halfHeight + THRESHOLD
+      if(Lside || Rside) {
+        stage.container().style.cursor = 'e-resize'
+      } else if(Tside || Bside) {
+        stage.container().style.cursor = 'n-resize'
+      } else {
+        stage.container().style.cursor = 'nesw-resize'
+      }
+    });
+    cropStroke.on("mouseleave", () => stage.container().style.cursor = 'default');
+    cropStroke.on('dragstart', (evt) => {
       this.setState({
+        lastMouseY: evt.evt.y,
         lastMouseX: evt.evt.x,
       });
-      stage.container().style.cursor = 'nesw-resize'
+      stage.container().style.cursor = 'new-resize'
     });
-    resizeX.on('dragend', () => stage.container().style.cursor = 'default')
+    cropStroke.on('dragend', () => stage.container().style.cursor = 'default')
 
-    // both
+
     resize.on("dragmove", (evt) => {
       if (evt.evt.type === 'touchmove') return;
       const newMouseY = evt.evt.Y;
@@ -511,6 +503,13 @@ class Avatar extends React.Component {
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
       dashEnabled: true,
+      draggable: true,
+      dragBoundFunc: function (pos) {
+        return {
+          x: this.getAbsolutePosition().x,
+          y: pos.y
+        }
+      },
       dash: [10, 5]
     })
   }
@@ -530,40 +529,6 @@ class Avatar extends React.Component {
       }
     })
   }
-  initResizeX() {
-    return new Konva.Rect({
-      x: this.halfWidth/2,
-      y: this.halfHeight,
-      width: 16,
-      height: 16,
-      draggable: true,
-      dragBoundFunc: function (pos) {
-        return {
-          x: this.getAbsolutePosition().x,
-          y: pos.y
-        }
-      }
-    })
-  }
-
-  initResizeY() {
-    return new Konva.Rect({
-      x: this.halfWidth,
-      y: this.halfHeight/2,
-      width: 16,
-      height: 16,
-      draggable: true,
-      dragBoundFunc: function (pos) {
-        return {
-          x: pos.x,
-          y: this.getAbsolutePosition().y,
-        }
-      }
-    })
-  }
-
-
-
 
   initResizeIcon() {
     return new Konva.Path({
@@ -578,31 +543,6 @@ class Avatar extends React.Component {
     })
   }
 
-   initResizeIconX() {
-    return new Konva.Path({
-      x: this.halfWidth/2,
-      y: this.halfHeight,
-      data: 'M 45 5 l 0 5 l -10 0 l 0 5 l 10 0 l 0 5 h 0 L 52 13 z M 30 10 L 20 10 L 20 5 L 13 13 L 20 20 L 20 15 L 30 15',
-      fill: this.cropColor,
-      scale: {
-        x: 0.7,
-        y: 0.7
-      }
-    })
-  }
-
-  initResizeIconY() {
-    return new Konva.Path({
-      x: this.halfWidth,
-      y: this.halfHeight/2,
-      data: 'm 7 21 l 3 0 l 0 9 l 4 0 l -7 6 l -7 -6 h 4 l 0 -9 z m 3 -15 l 4 0 l -7 -6 l -7 6 l 4 0 l 0 9 l 6 0 z',
-      fill: this.cropColor,
-      scale: {
-        x: 0.7,
-        y: 0.7
-      }
-    })
-  }
 
   render() {
     const { width, height } = this.props;

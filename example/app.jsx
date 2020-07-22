@@ -85,6 +85,7 @@ class App extends React.Component {
               cropRadius={50}
               onCrop={this.onCrop}
               onClose={this.onClose}
+              lineWidth={5}
               src={this.state.src}
               round={false}
             />
