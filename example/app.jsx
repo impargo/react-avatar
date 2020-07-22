@@ -86,6 +86,7 @@ class App extends React.Component {
               onCrop={this.onCrop}
               onClose={this.onClose}
               src={this.state.src}
+              round={false}
             />
           </div>
           <div className="col-2">
