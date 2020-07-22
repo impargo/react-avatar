@@ -87,6 +87,7 @@ class App extends React.Component {
               onClose={this.onClose}
               lineWidth={5}
               src={this.state.src}
+              changeAspecRatio
               round={false}
             />
           </div>

@@ -17,6 +17,9 @@ class Avatar extends React.Component {
     closeIconColor: 'white',
     lineWidth: 4,
     minCropRadius: 30,
+    minAspecRatio: 1/2,
+    maxAspecRatio: 16/9,
+    changeAspecRatio: false,
     backgroundColor: 'grey',
     mimeTypes: 'image/jpeg,image/png',
     mobileScaleSpeed: 0.5, // experimental
@@ -60,7 +63,11 @@ class Avatar extends React.Component {
       containerId,
       loaderId,
       lastMouseY: 0,
-      showLoader: !(this.props.src || this.props.img)
+      showLoader: !(this.props.src || this.props.img),
+      Rside: false,
+      Lside: false,
+      Tside: false,
+      Bside: false,
     }
   }
 
@@ -273,6 +280,10 @@ class Avatar extends React.Component {
     const isBottomCorner = scale => crop.y() + scaledRadius(scale)/2 > stage.height();
     const calcBottom = () => stage.height() - crop.height()/2 - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
+    const isWithinAspecRatio = (aspecRatio) => {
+      console.log(aspecRatio)
+      return aspecRatio >= this.props.minAspecRatio && aspecRatio <= this.props.maxAspecRatio;
+    }
     const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
     const calcResizerYX = x => x;
     const calcResizerYY = y => y - crop.height()/2 - 15;
@@ -283,6 +294,8 @@ class Avatar extends React.Component {
       resizeIcon.y(calcResizerYY(y));
       resize.x(calcResizerXX(x));
       resize.y(calcResizerYY(y));
+      cropStroke.x(crop.x())
+      cropStroke.y(crop.y())
     };
 
     const getPreview = () => crop.toDataURL({
@@ -297,7 +310,10 @@ class Avatar extends React.Component {
       onScaleCallbackY(scale)
     };
     const onScaleCallbackX = (scaleX) => {
-      const scale = scaleX > 0 || isNotOutOfScale(scaleX) ? scaleX : 0;
+      const currentAspecRatio = crop.width() / crop.height()
+      let scale = scaleX > 0 || isNotOutOfScale(scaleX) ? scaleX : 0;
+      scale = (scale < 0 && currentAspecRatio >= this.props.maxAspecRatio) ? 0 : scale
+      scale = (scale > 0 && currentAspecRatio <= this.props.minAspecRatio) ? 0 : scale
       cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
       crop.width(crop.width() - calcScaleRadius(scale));
       crop.offsetX(crop.width()/2)
@@ -307,7 +323,10 @@ class Avatar extends React.Component {
     };
 
     const onScaleCallbackY = (scaleY) => {
-      const scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
+      const currentAspecRatio = crop.width() / crop.height()
+      let scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
+      scale = (scale > 0 && currentAspecRatio >= this.props.maxAspecRatio) ? 0 : scale
+      scale = (scale < 0 && currentAspecRatio <= this.props.minAspecRatio) ? 0 : scale
       cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
       crop.height(crop.height() - calcScaleRadius(scale));
       crop.offsetY(crop.height()/2)
@@ -353,65 +372,70 @@ class Avatar extends React.Component {
       const newMouseX = evt.evt.x;
       const ieScaleFactorY = newMouseY ? (newMouseY - this.state.lastMouseY) : undefined;
       const ieScaleFactorX = newMouseX ? (newMouseX - this.state.lastMouseX) : undefined;
+      const { Bside, Tside, Lside, Rside } = this.state
       const scaleY = evt.evt.movementY || ieScaleFactorY || 0;
       const scaleX = evt.evt.movementX || ieScaleFactorX || 0;
-      const halfWidth = cropStroke.width()/2
-      const halfHeight = cropStroke.height()/2
-      const ex = evt.evt.layerX - cropStroke.x()
-      const ey = evt.evt.layerY - cropStroke.y()
-      const THRESHOLD = 3
-      const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
-      const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
-      const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
-      const Bside = -1 * ey > halfHeight - THRESHOLD && -1 * ey < halfHeight + THRESHOLD
       this.setState({
         lastMouseY: newMouseY,
         lastMouseX: newMouseX,
       });
+      if(Bside) {
+        onScaleCallbackY(scaleY)
+      }
+      if(Tside) {
+        onScaleCallbackY(-scaleY)
+      }
       if(Lside) {
         onScaleCallbackX(scaleX)
       }
       if(Rside) {
         onScaleCallbackX(-scaleX)
       }
-      if(Bside) {
-        onScaleCallbackY(-scaleY)
-      }
-      if(Tside) {
-        onScaleCallbackY(scaleY)
-      }
     });
-    cropStroke.on("dragend", () => this.onCropCallback(getPreview()));
+    if(this.props.changeAspecRatio) {
 
-    cropStroke.on('resize', () => moveResizer(crop.x(), crop.y()));
-
-    cropStroke.on("mousemove", (evt) => {
-      const halfWidth = cropStroke.width()/2
-      const halfHeight = cropStroke.height()/2
-      const ex = evt.evt.layerX - cropStroke.x()
-      const ey = evt.evt.layerY - cropStroke.y()
-      const THRESHOLD = 3
-      const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
-      const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
-      const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
-      const Bside = -1 * ey > halfHeight - THRESHOLD && -1 * ey < halfHeight + THRESHOLD
-      if(Lside || Rside) {
-        stage.container().style.cursor = 'e-resize'
-      } else if(Tside || Bside) {
-        stage.container().style.cursor = 'n-resize'
-      } else {
-        stage.container().style.cursor = 'nesw-resize'
-      }
-    });
-    cropStroke.on("mouseleave", () => stage.container().style.cursor = 'default');
-    cropStroke.on('dragstart', (evt) => {
-      this.setState({
-        lastMouseY: evt.evt.y,
-        lastMouseX: evt.evt.x,
+      cropStroke.on("dragend", () => this.onCropCallback(getPreview()));
+      
+      cropStroke.on('resize', () => moveResizer(crop.x(), crop.y()));
+      
+      cropStroke.on("mousemove", (evt) => {
+        const halfWidth = cropStroke.width()/2
+        const halfHeight = cropStroke.height()/2
+        const ex = evt.evt.layerX - cropStroke.x()
+        const ey = evt.evt.layerY - cropStroke.y()
+        const THRESHOLD = 3
+        const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
+        const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
+        const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
+        const Bside = -1 * ey > halfHeight - THRESHOLD && -1 * ey < halfHeight + THRESHOLD
+        this.setState({
+          Rside,
+          Lside,
+          Bside,
+          Tside,
+        });
+        if((Rside && Tside) || (Bside && Lside)) {
+          stage.container().style.cursor = 'nwse-resize'
+        }
+        else if((Lside && Tside) || (Rside && Bside)) {
+          stage.container().style.cursor = 'nesw-resize'
+        }
+        else if(Tside || Bside) {
+          stage.container().style.cursor = 'n-resize'
+        } else {
+          stage.container().style.cursor = 'e-resize'
+        }
       });
-      stage.container().style.cursor = 'new-resize'
-    });
-    cropStroke.on('dragend', () => stage.container().style.cursor = 'default')
+      cropStroke.on("mouseleave", () => stage.container().style.cursor = 'default');
+      cropStroke.on('dragstart', (evt) => {
+        this.setState({
+          lastMouseY: evt.evt.y,
+          lastMouseX: evt.evt.x,
+        });
+        stage.container().style.cursor = 'new-resize'
+      });
+      cropStroke.on('dragend', () => stage.container().style.cursor = 'default')
+    }
 
 
     resize.on("dragmove", (evt) => {
@@ -503,10 +527,10 @@ class Avatar extends React.Component {
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
       dashEnabled: true,
-      draggable: true,
+      draggable: this.props.changeAspecRatio,
       dragBoundFunc: function (pos) {
         return {
-          x: this.getAbsolutePosition().x,
+          x: pos.x,
           y: pos.y
         }
       },
