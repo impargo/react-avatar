@@ -285,15 +285,13 @@ class Avatar extends React.Component {
       return aspecRatio >= this.props.minAspecRatio && aspecRatio <= this.props.maxAspecRatio;
     }
     const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
-    const calcResizerYX = x => x;
-    const calcResizerYY = y => y - crop.height()/2 - 15;
-    const calcResizerXX = x => x + crop.width()/2 - 20;
-    const calcResizerXY = y => y - 10;
+    const calcResizerX = x => this.round ? x + (crop.width()/2 * 0.86) : x + crop.width() / 2 - 8;
+    const calcResizerY = y => this.round ? y - (crop.height()/2 * 0.5) : y - crop.height() / 2 - 8;
     const moveResizer = (x, y) => {
-      resizeIcon.x(calcResizerXX(x));
-      resizeIcon.y(calcResizerYY(y));
-      resize.x(calcResizerXX(x));
-      resize.y(calcResizerYY(y));
+      resizeIcon.x(calcResizerX(x));
+      resizeIcon.y(calcResizerY(y));
+      resize.x(calcResizerX(x));
+      resize.y(calcResizerY(y));
       cropStroke.x(crop.x())
       cropStroke.y(crop.y())
     };
