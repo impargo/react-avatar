@@ -19,7 +19,7 @@ class Avatar extends React.Component {
     minCropRadius: 30,
     minaspectRatio: 1/2,
     maxaspectRatio: 16/9,
-    changeaspectRatio: false,
+    changeAspectRatio: false,
     showResizeArrow: true,
     backgroundColor: 'grey',
     mimeTypes: 'image/jpeg,image/png',
@@ -392,7 +392,7 @@ class Avatar extends React.Component {
         onScaleCallbackX(-scaleX)
       }
     });
-    if(this.props.changeaspectRatio) {
+    if(this.props.changeAspectRatio) {
 
       cropStroke.on("dragend", () => this.onCropCallback(getPreview()));
       
@@ -531,7 +531,7 @@ class Avatar extends React.Component {
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
       dashEnabled: true,
-      draggable: this.props.changeaspectRatio,
+      draggable: this.props.changeAspectRatio,
       dragBoundFunc: function (pos) {
         return {
           x: pos.x,

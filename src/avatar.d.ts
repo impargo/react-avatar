@@ -6,6 +6,10 @@ import * as React from 'react';
 
 export interface Props {
   /**
+  * change image propotions
+  **/
+  changeAspectRatio?: boolean;
+  /**
    * The Image object to display
    */
   img?: HTMLImageElement;
