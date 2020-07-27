@@ -73,6 +73,7 @@ ReactDOM.render(<App /> , document.getElementById('root'))
 
 | Prop                   | Type             | Description
 | ---------------------- | ---------------- | ---------------
+| aspecRatio             | Boolean          | If true and in rectangle mode, then you can change the aspect ratio of cropped image
 | img                    | Image            | The Image object to display
 | src                    | String/Base64    | The url to base64 string to load (use urls from your domain to prevent security errors)
 | width                  | Number           | The width of the editor
