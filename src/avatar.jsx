@@ -261,11 +261,12 @@ class Avatar extends React.Component {
 
     const layer = new Konva.Layer();
 
+    
     layer.add(background);
     layer.add(shading);
     layer.add(cropStroke);
     layer.add(crop);
-
+    
     if(this.props.showResizeArrow) {
       layer.add(resize);
       layer.add(resizeIcon);
@@ -498,9 +499,9 @@ class Avatar extends React.Component {
       x: this.halfWidth,
       y: this.halfHeight,
       offsetX: this.halfWidth/2,
-      offsetY: this.halfHeight/2,
+      offsetY: this.halfWidth/2,
       width: this.halfWidth,
-      height: this.halfHeight,
+      height: this.halfWidth,
       fillPatternImage: this.image,
       cornerRadius: this.round ? this.halfWidth : 0,
       fillPatternScale: {
@@ -509,7 +510,7 @@ class Avatar extends React.Component {
       },
       fillPatternOffset: {
         x: (this.halfWidth/2) / this.scale,
-        y: (this.halfHeight/2) / this.scale
+        y: (this.halfHeight - this.halfWidth/2) / this.scale
       },
       opacity: 1,
       draggable: true,
@@ -523,9 +524,9 @@ class Avatar extends React.Component {
       x: this.halfWidth,
       y: this.halfHeight,
       offsetX: this.halfWidth/2,
-      offsetY: this.halfHeight/2,
+      offsetY: this.halfWidth/2,
       width: this.halfWidth,
-      height: this.halfHeight,
+      height: this.halfWidth,
       cornerRadius: this.round ? this.halfWidth : 0,
       stroke: this.cropColor,
       strokeWidth: this.lineWidth,
