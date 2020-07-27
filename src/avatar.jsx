@@ -279,9 +279,9 @@ class Avatar extends React.Component {
     const calcLeft = () => crop.width()/2;
     const isTopCorner = () => crop.y() - crop.height()/2 < 1;
     const calcTop = () => crop.height()/2;
-    const isRightCorner = scale => crop.x() + scaledRadius(scale)/2 > stage.width();
+    const isRightCorner = () => crop.x() + crop.width()/2 > stage.width();
     const calcRight = () => stage.width() - crop.width()/2 - 1;
-    const isBottomCorner = scale => crop.y() + scaledRadius(scale)/2 > stage.height();
+    const isBottomCorner = () => crop.y() + crop.height()/2 > stage.height();
     const calcBottom = () => stage.height() - crop.height()/2 - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
     const isWithinaspectRatio = (aspectRatio) => {
