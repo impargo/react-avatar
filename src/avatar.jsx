@@ -404,7 +404,7 @@ class Avatar extends React.Component {
         const halfHeight = cropStroke.height()/2
         const ex = evt.evt.layerX - cropStroke.x()
         const ey = evt.evt.layerY - cropStroke.y()
-        const THRESHOLD = 3
+        const THRESHOLD = 5
         const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
         const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
         const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
