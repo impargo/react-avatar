@@ -17,6 +17,10 @@ class Avatar extends React.Component {
     closeIconColor: 'white',
     lineWidth: 4,
     minCropRadius: 30,
+    minAspecRatio: 1/2,
+    maxAspecRatio: 16/9,
+    changeAspecRatio: false,
+    showResizeArrow: true,
     backgroundColor: 'grey',
     mimeTypes: 'image/jpeg,image/png',
     mobileScaleSpeed: 0.5, // experimental
@@ -60,10 +64,14 @@ class Avatar extends React.Component {
       containerId,
       loaderId,
       lastMouseY: 0,
-      showLoader: !(this.props.src || this.props.img)
+      showLoader: !(this.props.src || this.props.img),
+      Rside: false,
+      Lside: false,
+      Tside: false,
+      Bside: false,
     }
   }
-  
+
   get round() {
     return this.props.round
   }
@@ -258,8 +266,10 @@ class Avatar extends React.Component {
     layer.add(cropStroke);
     layer.add(crop);
 
-    layer.add(resize);
-    layer.add(resizeIcon);
+    if(this.props.showResizeArrow) {
+      layer.add(resize);
+      layer.add(resizeIcon);
+    }
 
     stage.add(layer);
 
@@ -273,36 +283,59 @@ class Avatar extends React.Component {
     const isBottomCorner = scale => crop.y() + scaledRadius(scale)/2 > stage.height();
     const calcBottom = () => stage.height() - crop.height()/2 - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
+    const isWithinAspecRatio = (aspecRatio) => {
+      return aspecRatio >= this.props.minAspecRatio && aspecRatio <= this.props.maxAspecRatio;
+    }
     const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
     const calcResizerX = x => this.round ? x + (crop.width()/2 * 0.86) : x + crop.width() / 2 - 8;
     const calcResizerY = y => this.round ? y - (crop.height()/2 * 0.5) : y - crop.height() / 2 - 8;
     const moveResizer = (x, y) => {
+      resizeIcon.x(calcResizerX(x));
+      resizeIcon.y(calcResizerY(y));
       resize.x(calcResizerX(x));
       resize.y(calcResizerY(y));
-      resizeIcon.x(calcResizerX(x));
-      resizeIcon.y(calcResizerY(y))
+      cropStroke.x(crop.x())
+      cropStroke.y(crop.y())
     };
 
     const getPreview = () => crop.toDataURL({
       x: crop.x() - crop.width()/2,
-      y: crop.y() - crop.width()/2,
+      y: crop.y() - crop.height()/2,
       width: crop.width(),
       height: crop.height()
     });
 
-    const onScaleCallback = (scaleY) => {
-      const scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
+    const onScaleCallback = (scale) => {
+      onScaleCallbackX(scale)
+      onScaleCallbackY(scale)
+    };
+    const onScaleCallbackX = (scaleX) => {
+      const currentAspecRatio = crop.width() / crop.height()
+      let scale = scaleX > 0 || isNotOutOfScale(scaleX) ? scaleX : 0;
+      scale = (scale < 0 && currentAspecRatio >= this.props.maxAspecRatio) ? 0 : scale
+      scale = (scale > 0 && currentAspecRatio <= this.props.minAspecRatio) ? 0 : scale
       cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
-      cropStroke.height(cropStroke.width());
       crop.width(crop.width() - calcScaleRadius(scale));
-      crop.height(crop.width());
       crop.offsetX(crop.width()/2)
-      crop.offsetY(crop.height()/2)
       cropStroke.offsetX(cropStroke.width()/2)
+      crop.setFillPatternOffset({ x: (crop.x() - crop.width()/2) / this.scale, y: (crop.y() - crop.height()/2) / this.scale });
+      cropStroke.fire('resize')
+    };
+
+    const onScaleCallbackY = (scaleY) => {
+      const currentAspecRatio = crop.width() / crop.height()
+      let scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
+      scale = (scale > 0 && currentAspecRatio >= this.props.maxAspecRatio) ? 0 : scale
+      scale = (scale < 0 && currentAspecRatio <= this.props.minAspecRatio) ? 0 : scale
+      cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
+      crop.height(crop.height() - calcScaleRadius(scale));
+      crop.offsetY(crop.height()/2)
       cropStroke.offsetY(cropStroke.height()/2)
       crop.setFillPatternOffset({ x: (crop.x() - crop.width()/2) / this.scale, y: (crop.y() - crop.height()/2) / this.scale });
-      resize.fire('resize')
+      cropStroke.fire('resize')
     };
+
+
 
     this.onCropCallback(getPreview());
 
@@ -325,23 +358,95 @@ class Avatar extends React.Component {
     crop.on('dragstart', () => stage.container().style.cursor = 'move');
     crop.on('dragend', () => stage.container().style.cursor = 'default');
 
-    resize.on("touchstart", (evt) => {
-      resize.on("dragmove", (dragEvt) => {
+    cropStroke.on("touchstart", (evt) => {
+      cropStroke.on("dragmove", (dragEvt) => {
         if (dragEvt.evt.type !== 'touchmove') return;
         const scaleY = (dragEvt.evt.changedTouches['0'].pageY - evt.evt.changedTouches['0'].pageY) || 0;
         onScaleCallback(scaleY * this.mobileScaleSpeed)
       })
     });
 
-    resize.on("dragmove", (evt) => {
+    cropStroke.on("dragmove", (evt) => {
       if (evt.evt.type === 'touchmove') return;
       const newMouseY = evt.evt.y;
+      const newMouseX = evt.evt.x;
+      const ieScaleFactorY = newMouseY ? (newMouseY - this.state.lastMouseY) : undefined;
+      const ieScaleFactorX = newMouseX ? (newMouseX - this.state.lastMouseX) : undefined;
+      const { Bside, Tside, Lside, Rside } = this.state
+      const scaleY = evt.evt.movementY || ieScaleFactorY || 0;
+      const scaleX = evt.evt.movementX || ieScaleFactorX || 0;
+      this.setState({
+        lastMouseY: newMouseY,
+        lastMouseX: newMouseX,
+      });
+      if(Bside) {
+        onScaleCallbackY(scaleY)
+      }
+      if(Tside) {
+        onScaleCallbackY(-scaleY)
+      }
+      if(Lside) {
+        onScaleCallbackX(scaleX)
+      }
+      if(Rside) {
+        onScaleCallbackX(-scaleX)
+      }
+    });
+    if(this.props.changeAspecRatio) {
+
+      cropStroke.on("dragend", () => this.onCropCallback(getPreview()));
+      
+      cropStroke.on('resize', () => moveResizer(crop.x(), crop.y()));
+      
+      cropStroke.on("mousemove", (evt) => {
+        const halfWidth = cropStroke.width()/2
+        const halfHeight = cropStroke.height()/2
+        const ex = evt.evt.layerX - cropStroke.x()
+        const ey = evt.evt.layerY - cropStroke.y()
+        const THRESHOLD = 5
+        const Rside = ex > halfWidth -THRESHOLD  && ex < halfWidth + THRESHOLD
+        const Lside = -1*ex > halfWidth - THRESHOLD && -1 * ex < halfWidth + THRESHOLD
+        const Tside = ey > halfHeight - THRESHOLD && ey < halfHeight + THRESHOLD
+        const Bside = -1 * ey > halfHeight - THRESHOLD && -1 * ey < halfHeight + THRESHOLD
+        this.setState({
+          Rside,
+          Lside,
+          Bside,
+          Tside,
+        });
+        if((Rside && Tside) || (Bside && Lside)) {
+          stage.container().style.cursor = 'nwse-resize'
+        }
+        else if((Lside && Tside) || (Rside && Bside)) {
+          stage.container().style.cursor = 'nesw-resize'
+        }
+        else if(Tside || Bside) {
+          stage.container().style.cursor = 'n-resize'
+        } else {
+          stage.container().style.cursor = 'e-resize'
+        }
+      });
+      cropStroke.on("mouseleave", () => stage.container().style.cursor = 'default');
+      cropStroke.on('dragstart', (evt) => {
+        this.setState({
+          lastMouseY: evt.evt.y,
+          lastMouseX: evt.evt.x,
+        });
+        stage.container().style.cursor = 'new-resize'
+      });
+      cropStroke.on('dragend', () => stage.container().style.cursor = 'default')
+    }
+
+
+    resize.on("dragmove", (evt) => {
+      if (evt.evt.type === 'touchmove') return;
+      const newMouseY = evt.evt.Y;
       const ieScaleFactor = newMouseY ? (newMouseY - this.state.lastMouseY) : undefined;
-      const scaleY = evt.evt.movementY || ieScaleFactor || 0;
+      const scale = evt.evt.movementY || ieScaleFactor || 0;
       this.setState({
         lastMouseY: newMouseY,
       });
-      onScaleCallback(scaleY)
+      onScaleCallback(scale)
     });
     resize.on("dragend", () => this.onCropCallback(getPreview()));
 
@@ -351,11 +456,11 @@ class Avatar extends React.Component {
     resize.on("mouseleave", () => stage.container().style.cursor = 'default');
     resize.on('dragstart', (evt) => {
       this.setState({
-        lastMouseY: evt.evt.y,
+        lastMouseX: evt.evt.x,
       });
       stage.container().style.cursor = 'nesw-resize'
     });
-    resize.on('dragend', () => stage.container().style.cursor = 'default')
+    resize.on('dragend', () => stage.container().style.cursor = 'default') 
   }
 
   initStage() {
@@ -392,19 +497,19 @@ class Avatar extends React.Component {
     return new Konva.Rect({
       x: this.halfWidth,
       y: this.halfHeight,
-      offsetX: this.cropRadius,
-      offsetY: this.cropRadius,
-      height: this.cropRadius * 2,
-      width: this.cropRadius * 2,
+      offsetX: this.halfWidth/2,
+      offsetY: this.halfHeight/2,
+      width: this.halfWidth,
+      height: this.halfHeight,
       fillPatternImage: this.image,
       cornerRadius: this.round ? this.halfWidth : 0,
-      fillPatternOffset: {
-        x: (this.halfWidth - this.cropRadius) / this.scale,
-        y: (this.halfHeight - this.cropRadius) / this.scale
-      },
       fillPatternScale: {
         x: this.scale,
         y: this.scale
+      },
+      fillPatternOffset: {
+        x: (this.halfWidth/2) / this.scale,
+        y: (this.halfHeight/2) / this.scale
       },
       opacity: 1,
       draggable: true,
@@ -417,23 +522,30 @@ class Avatar extends React.Component {
     return new Konva.Rect({
       x: this.halfWidth,
       y: this.halfHeight,
-      height: this.cropRadius * 2,
-      width: this.cropRadius * 2,
-      offsetX: this.cropRadius,
-      offsetY: this.cropRadius,
+      offsetX: this.halfWidth/2,
+      offsetY: this.halfHeight/2,
+      width: this.halfWidth,
+      height: this.halfHeight,
       cornerRadius: this.round ? this.halfWidth : 0,
       stroke: this.cropColor,
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
       dashEnabled: true,
+      draggable: this.props.changeAspecRatio,
+      dragBoundFunc: function (pos) {
+        return {
+          x: pos.x,
+          y: pos.y
+        }
+      },
       dash: [10, 5]
     })
   }
 
   initResize() {
     return new Konva.Rect({
-      x: this.round ? this.halfWidth + (this.cropRadius * 0.86) : this.halfWidth + this.cropRadius - 8,
-      y: this.round ? this.halfHeight - (this.cropRadius * 0.5) : this.halfHeight - this.cropRadius - 8,
+      x: this.round ? this.width * 0.7 : this.width * 3/4 - 8,
+      y: this.round ? this.width * 0.4 : this.halfHeight/2 -8,
       width: 16,
       height: 16,
       draggable: true,
@@ -448,8 +560,8 @@ class Avatar extends React.Component {
 
   initResizeIcon() {
     return new Konva.Path({
-      x: this.round ? this.halfWidth + (this.cropRadius * 0.86) : this.halfWidth + this.cropRadius - 8,
-      y: this.round ? this.halfHeight - (this.cropRadius * 0.5) : this.halfHeight - this.cropRadius - 8,
+      x: this.round ? this.width * 0.7 : this.width * 3/4 - 8,
+      y: this.round ? this.width * 0.4 : this.halfHeight/2 -8,
       data: 'M47.624,0.124l12.021,9.73L44.5,24.5l10,10l14.661-15.161l9.963,12.285v-31.5H47.624z M24.5,44.5   L9.847,59.653L0,47.5V79h31.5l-12.153-9.847L34.5,54.5L24.5,44.5z',
       fill: this.cropColor,
       scale: {
@@ -458,6 +570,7 @@ class Avatar extends React.Component {
       }
     })
   }
+
 
   render() {
     const { width, height } = this.props;

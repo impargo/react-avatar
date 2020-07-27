@@ -60,12 +60,12 @@ class App extends React.Component {
               height={295}
               onCrop={this.onCropDefault}
               onClose={this.onCloseDefault}
-              // src={this.state.src}
+              src={this.state.src}
             />
           </div>
           <div className="col-2">
             <h5>Preview</h5>
-            <img alt="" style={{width: '150px', height: '150px'}} src={this.state.defaultPreview}/>
+            <img alt="" style={{ height: '150px'}} src={this.state.defaultPreview}/>
           </div>
           <div className="col-3"/>
         </div>
@@ -85,12 +85,15 @@ class App extends React.Component {
               cropRadius={50}
               onCrop={this.onCrop}
               onClose={this.onClose}
+              lineWidth={8}
               src={this.state.src}
+              changeAspecRatio
+              round={false}
             />
           </div>
           <div className="col-2">
             <h5>Preview</h5>
-            <img alt="" style={{width: '150px', height: '150px'}} src={this.state.preview}/>
+            <img alt="" style={{ height: '150px'}} src={this.state.preview}/>
           </div>
           <div className="col-3"/>
         </div>
