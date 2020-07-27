@@ -284,7 +284,6 @@ class Avatar extends React.Component {
     const calcBottom = () => stage.height() - crop.height()/2 - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
     const isWithinAspecRatio = (aspecRatio) => {
-      console.log(aspecRatio)
       return aspecRatio >= this.props.minAspecRatio && aspecRatio <= this.props.maxAspecRatio;
     }
     const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
