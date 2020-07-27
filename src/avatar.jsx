@@ -17,9 +17,9 @@ class Avatar extends React.Component {
     closeIconColor: 'white',
     lineWidth: 4,
     minCropRadius: 30,
-    minAspecRatio: 1/2,
-    maxAspecRatio: 16/9,
-    changeAspecRatio: false,
+    minaspectRatio: 1/2,
+    maxaspectRatio: 16/9,
+    changeaspectRatio: false,
     showResizeArrow: true,
     backgroundColor: 'grey',
     mimeTypes: 'image/jpeg,image/png',
@@ -283,8 +283,8 @@ class Avatar extends React.Component {
     const isBottomCorner = scale => crop.y() + scaledRadius(scale)/2 > stage.height();
     const calcBottom = () => stage.height() - crop.height()/2 - 1;
     const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
-    const isWithinAspecRatio = (aspecRatio) => {
-      return aspecRatio >= this.props.minAspecRatio && aspecRatio <= this.props.maxAspecRatio;
+    const isWithinaspectRatio = (aspectRatio) => {
+      return aspectRatio >= this.props.minaspectRatio && aspectRatio <= this.props.maxaspectRatio;
     }
     const calcScaleRadius = scale => scaledRadius(scale) >= this.minCropRadius ? scale : crop.width() - this.minCropRadius;
     const calcResizerX = x => this.round ? x + (crop.width()/2 * 0.86) : x + crop.width() / 2 - 8;
@@ -310,10 +310,10 @@ class Avatar extends React.Component {
       onScaleCallbackY(scale)
     };
     const onScaleCallbackX = (scaleX) => {
-      const currentAspecRatio = crop.width() / crop.height()
+      const currentaspectRatio = crop.width() / crop.height()
       let scale = scaleX > 0 || isNotOutOfScale(scaleX) ? scaleX : 0;
-      scale = (scale < 0 && currentAspecRatio >= this.props.maxAspecRatio) ? 0 : scale
-      scale = (scale > 0 && currentAspecRatio <= this.props.minAspecRatio) ? 0 : scale
+      scale = (scale < 0 && currentaspectRatio >= this.props.maxaspectRatio) ? 0 : scale
+      scale = (scale > 0 && currentaspectRatio <= this.props.minaspectRatio) ? 0 : scale
       cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
       crop.width(crop.width() - calcScaleRadius(scale));
       crop.offsetX(crop.width()/2)
@@ -323,10 +323,10 @@ class Avatar extends React.Component {
     };
 
     const onScaleCallbackY = (scaleY) => {
-      const currentAspecRatio = crop.width() / crop.height()
+      const currentaspectRatio = crop.width() / crop.height()
       let scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
-      scale = (scale > 0 && currentAspecRatio >= this.props.maxAspecRatio) ? 0 : scale
-      scale = (scale < 0 && currentAspecRatio <= this.props.minAspecRatio) ? 0 : scale
+      scale = (scale > 0 && currentaspectRatio >= this.props.maxaspectRatio) ? 0 : scale
+      scale = (scale < 0 && currentaspectRatio <= this.props.minaspectRatio) ? 0 : scale
       cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
       crop.height(crop.height() - calcScaleRadius(scale));
       crop.offsetY(crop.height()/2)
@@ -392,7 +392,7 @@ class Avatar extends React.Component {
         onScaleCallbackX(-scaleX)
       }
     });
-    if(this.props.changeAspecRatio) {
+    if(this.props.changeaspectRatio) {
 
       cropStroke.on("dragend", () => this.onCropCallback(getPreview()));
       
@@ -531,7 +531,7 @@ class Avatar extends React.Component {
       strokeWidth: this.lineWidth,
       strokeScaleEnabled: true,
       dashEnabled: true,
-      draggable: this.props.changeAspecRatio,
+      draggable: this.props.changeaspectRatio,
       dragBoundFunc: function (pos) {
         return {
           x: pos.x,
