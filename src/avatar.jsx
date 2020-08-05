@@ -265,12 +265,11 @@ class Avatar extends React.Component {
 
     const layer = new Konva.Layer();
 
-    
     layer.add(background);
     layer.add(shading);
     layer.add(cropStroke);
     layer.add(crop);
-    
+
     if(this.props.showResizeArrow) {
       layer.add(resize);
       layer.add(resizeIcon);
@@ -551,8 +550,8 @@ class Avatar extends React.Component {
 
   initResize() {
     return new Konva.Rect({
-      x: this.round ? this.sideLength * 2 * 0.7 : this.halfWidth + this.sideLength/2 - 8,
-      y: this.round ? this.sideLength * 2 * 0.4 : this.halfHeight - this.sideLength/2 -8,
+      x: this.round ? (this.sideLength * 0.4 + this.halfWidth) : this.halfWidth + this.sideLength/2 - 8,
+      y: this.round ? (this.halfHeight - this.sideLength * 0.4 ) + 8 : this.halfHeight - this.sideLength/2 -8,
       width: 16,
       height: 16,
       draggable: true,
@@ -567,8 +566,8 @@ class Avatar extends React.Component {
 
   initResizeIcon() {
     return new Konva.Path({
-      x: this.round ? this.sideLength * 2 * 0.7 : this.halfWidth + this.sideLength/2 - 8,
-      y: this.round ? this.sideLength * 2 * 0.4 : this.halfHeight - this.sideLength/2 -8,
+      x: this.round ? (this.sideLength * 0.4 + this.halfWidth) : this.halfWidth + this.sideLength/2 - 8,
+      y: this.round ? (this.halfHeight - this.sideLength * 0.4 ) + 8 : this.halfHeight - this.sideLength/2 -8,
       data: 'M47.624,0.124l12.021,9.73L44.5,24.5l10,10l14.661-15.161l9.963,12.285v-31.5H47.624z M24.5,44.5   L9.847,59.653L0,47.5V79h31.5l-12.153-9.847L34.5,54.5L24.5,44.5z',
       fill: this.cropColor,
       scale: {
