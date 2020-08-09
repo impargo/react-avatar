@@ -278,15 +278,17 @@ class Avatar extends React.Component {
     stage.add(layer);
 
     const scaledRadius = (scale = 0) => crop.width() - scale;
-    const isLeftCorner = () => crop.x() - crop.width()/2 < 1;
-    const calcLeft = () => crop.width()/2;
-    const isTopCorner = () => crop.y() - crop.height()/2 < 1;
-    const calcTop = () => crop.height()/2;
-    const isRightCorner = () => crop.x() + crop.width()/2 > stage.width();
-    const calcRight = () => stage.width() - crop.width()/2 - 1;
-    const isBottomCorner = () => crop.y() + crop.height()/2 > stage.height();
-    const calcBottom = () => stage.height() - crop.height()/2 - 1;
-    const isNotOutOfScale = scale => !isLeftCorner(scale) && !isRightCorner(scale) && !isBottomCorner(scale) && !isTopCorner(scale);
+    const isLeftCorner = () => crop.x() - crop.width()/2 - 3 < 0;
+    const calcLeft = () => crop.width()/2 + 5;
+    const isTopCorner = () => crop.y() - crop.height()/2 - 3 < 0;
+    const calcTop = () => crop.height()/2 + 5;
+    const isRightCorner = () => crop.x() + crop.width()/2 > stage.width() - 10;
+    const calcRight = () => stage.width() - crop.width()/2 - 5;
+    const isBottomCorner = () => crop.y() + crop.height()/2 > stage.height() - 10;
+    const calcBottom = () => stage.height() - crop.height()/2 - 5;
+    const isNotOutOfScaleY = scale => !isBottomCorner(scale) && !isTopCorner(scale);
+    const isNotOutOfScaleX = scale => !isLeftCorner(scale) && !isRightCorner(scale)
+    const isNotOutOfScale = scale => isNotOutOfScaleX(scale) && isNotOutOfScaleY(scale)
     const isWithinaspectRatio = (aspectRatio) => {
       return aspectRatio >= this.props.minaspectRatio && aspectRatio <= this.props.maxaspectRatio;
     }
@@ -306,7 +308,7 @@ class Avatar extends React.Component {
       x: crop.x() - crop.width()/2,
       y: crop.y() - crop.height()/2,
       width: crop.width(),
-      height: crop.height()
+      height: crop.height(),
     });
 
     const onScaleCallback = (scale) => {
@@ -315,7 +317,7 @@ class Avatar extends React.Component {
     };
     const onScaleCallbackX = (scaleX) => {
       const currentaspectRatio = crop.width() / crop.height()
-      let scale = scaleX > 0 || isNotOutOfScale(scaleX) ? scaleX : 0;
+      let scale = scaleX > 0 || isNotOutOfScaleX(scaleX) ? scaleX : 0;
       scale = (scale < 0 && currentaspectRatio >= this.props.maxaspectRatio) ? 0 : scale
       scale = (scale > 0 && currentaspectRatio <= this.props.minaspectRatio) ? 0 : scale
       cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
@@ -329,7 +331,7 @@ class Avatar extends React.Component {
 
     const onScaleCallbackY = (scaleY) => {
       const currentaspectRatio = crop.width() / crop.height()
-      let scale = scaleY > 0 || isNotOutOfScale(scaleY) ? scaleY : 0;
+      let scale = scaleY > 0 || isNotOutOfScaleY(scaleY) ? scaleY : 0;
       scale = (scale > 0 && currentaspectRatio >= this.props.maxaspectRatio) ? 0 : scale
       scale = (scale < 0 && currentaspectRatio <= this.props.minaspectRatio) ? 0 : scale
       cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
