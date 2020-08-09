@@ -317,7 +317,8 @@ class Avatar extends React.Component {
     };
     const onScaleCallbackX = (scaleX) => {
       const currentaspectRatio = crop.width() / crop.height()
-      let scale = scaleX > 0 || isNotOutOfScaleX(scaleX) ? scaleX : 0;
+      const isNotOutOfScaleFn = this.props.round ? isNotOutOfScale : isNotOutOfScaleX
+      let scale = scaleX > 0 || isNotOutOfScaleFn(scaleX) ? scaleX : 0;
       scale = (scale < 0 && currentaspectRatio >= this.props.maxaspectRatio) ? 0 : scale
       scale = (scale > 0 && currentaspectRatio <= this.props.minaspectRatio) ? 0 : scale
       cropStroke.width(cropStroke.width() - calcScaleRadius(scale));
@@ -331,7 +332,8 @@ class Avatar extends React.Component {
 
     const onScaleCallbackY = (scaleY) => {
       const currentaspectRatio = crop.width() / crop.height()
-      let scale = scaleY > 0 || isNotOutOfScaleY(scaleY) ? scaleY : 0;
+      const isNotOutOfScaleFn = this.props.round ? isNotOutOfScale : isNotOutOfScaleY
+      let scale = scaleY > 0 || isNotOutOfScaleFn(scaleY) ? scaleY : 0;
       scale = (scale > 0 && currentaspectRatio >= this.props.maxaspectRatio) ? 0 : scale
       scale = (scale < 0 && currentaspectRatio <= this.props.minaspectRatio) ? 0 : scale
       cropStroke.height(cropStroke.height() - calcScaleRadius(scale));
